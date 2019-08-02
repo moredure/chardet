@@ -1,4 +1,4 @@
-# chardet
+# chardet - Non concurrent version
 
 chardet is library to automatically detect
 [charset](http://en.wikipedia.org/wiki/Character_encoding) of texts for [Go
