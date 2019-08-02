@@ -97,7 +97,10 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 	input := newRecognizerInput(b, d.stripTag)
 	outputs := make([]recognizerOutput, 0, len(d.recognizers))
 	for _, r := range d.recognizers {
-		matchHelper(r, input, outputs)
+		o := r.Match(input)
+		if o.Confidence > 0 {
+			outputs = append(outputs, o)
+		}
 	}
 	if len(outputs) == 0 {
 		return nil, NotDetectedError
@@ -116,13 +119,6 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 		return nil, NotDetectedError
 	}
 	return dedupOutputs, nil
-}
-
-func matchHelper(r recognizer, input *recognizerInput, outputChan []recognizerOutput) {
-	o := r.Match(input)
-	if o.Confidence > 0 {
-		outputChan = append(outputChan, o)
-	}
 }
 
 type recognizerOutputs []recognizerOutput
