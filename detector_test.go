@@ -1,7 +1,6 @@
-package chardet_test
+package chardet
 
 import (
-	"github.com/saintfish/chardet"
 	"io"
 	"os"
 	"path/filepath"
@@ -31,8 +30,8 @@ func TestDetector(t *testing.T) {
 		{"big5.html", true, "Big5", "zh"},
 	}
 
-	textDetector := chardet.NewTextDetector()
-	htmlDetector := chardet.NewHtmlDetector()
+	textDetector := NewTextDetector()
+	htmlDetector := NewHtmlDetector()
 	buffer := make([]byte, 32<<10)
 	for _, d := range data {
 		f, err := os.Open(filepath.Join("testdata", d.File))
