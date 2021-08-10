@@ -102,7 +102,7 @@ func (d *Detector) DetectBestCharset(b []byte) (res string, err error) {
 		}
 	}
 	input.Reset()
-	inputRecognizersPool.Put(input)
+	recognizerInputsPool.Put(input)
 	if prev == 0 {
 		return "", NotDetectedError
 	}
@@ -120,7 +120,7 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 		}
 	}
 	input.Reset()
-	inputRecognizersPool.Put(input)
+	recognizerInputsPool.Put(input)
 	if len(outputs) == 0 {
 		return nil, NotDetectedError
 	}
