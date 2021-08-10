@@ -26,8 +26,9 @@ func newRecognizerInput(raw []byte, stripTag bool) *recognizerInput {
 	}
 }
 
+const inputBufferSize = 8192
+
 func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
-	const inputBufferSize = 8192
 	out = make([]byte, 0, inputBufferSize)
 	var badTags, openTags int32
 	var inMarkup bool = false
