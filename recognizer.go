@@ -1,5 +1,7 @@
 package chardet
 
+import "sync"
+
 type recognizer interface {
 	Match(*recognizerInput) recognizerOutput
 }
