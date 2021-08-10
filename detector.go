@@ -92,21 +92,40 @@ func (d *Detector) DetectBest(b []byte) (r *Result, err error) {
 	return
 }
 
+func (d *Detector) DetectBestCharset(b []byte) (res string, err error) {
+	input := newRecognizerInput(b, d.stripTag)
+	var prev int
+	for _, r := range d.recognizers {
+		if o := r.Match(input); prev < o.Confidence {
+			res = o.Charset
+			prev = o.Confidence
+		}
+	}
+	input.Reset()
+	inputRecognizersPool.Put(input)
+	if prev == 0 {
+		return "", NotDetectedError
+	}
+	return
+}
+
 // DetectAll returns all Results which have non-zero Confidence. The Results are sorted by Confidence in descending order.
 func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 	input := newRecognizerInput(b, d.stripTag)
-	outputs := make([]recognizerOutput, 0, len(d.recognizers))
+	outputs := make(recognizerOutputs, 0, len(d.recognizers))
 	for _, r := range d.recognizers {
 		o := r.Match(input)
 		if o.Confidence > 0 {
 			outputs = append(outputs, o)
 		}
 	}
+	input.Reset()
+	inputRecognizersPool.Put(input)
 	if len(outputs) == 0 {
 		return nil, NotDetectedError
 	}
 
-	sort.Sort(recognizerOutputs(outputs))
+	sort.Sort(outputs)
 	dedupOutputs := make([]Result, 0, len(outputs))
 	foundCharsets := make(map[string]struct{}, len(outputs))
 	for _, o := range outputs {
