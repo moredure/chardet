@@ -14,24 +14,41 @@ type recognizerInput struct {
 	hasC1Bytes  bool
 }
 
-func newRecognizerInput(raw []byte, stripTag bool) *recognizerInput {
-	input, stripped := mayStripInput(raw, stripTag)
-	byteStats := computeByteStats(input)
-	return &recognizerInput{
-		raw:         raw,
-		input:       input,
-		tagStripped: stripped,
-		byteStats:   byteStats,
-		hasC1Bytes:  computeHasC1Bytes(byteStats),
+const inputBufferSize = 8192
+
+var recognizerInputPool = sync.Pool{
+	New: func() interface{} {
+		return &recognizerInput{
+			input: make([]byte, 0, inputBufferSize),
+			byteStats: make([]int, 256),
+		}
+	},
+}
+
+
+func (r *recognizerInput) Reset() {
+	r.raw = nil
+	for i := range r.byteStats {
+		r.byteStats[i] = 0
 	}
 }
 
-const inputBufferSize = 8192
+func newRecognizerInput(raw []byte, stripTag bool) *recognizerInput {
+	input := inputRecognizersPool.Get().(*recognizerInput)
+	input.input, input.tagStripped = mayStripInput(input.input[:0], raw, stripTag)
+	for _, c := range input.input {
+		input.byteStats[c] += 1
+	}
+	input.hasC1Bytes = computeHasC1Bytes(input.byteStats)
+	input.raw = raw
+	return input
+}
 
-func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
-	out = make([]byte, 0, inputBufferSize)
+
+func mayStripInput(input, raw []byte, stripTag bool) (out []byte, stripped bool) {
+	out = input
 	var badTags, openTags int32
-	var inMarkup bool = false
+	inMarkup := false
 	stripped = false
 	if stripTag {
 		stripped = true
@@ -59,19 +76,11 @@ func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
 		if limit > inputBufferSize {
 			limit = inputBufferSize
 		}
-		out = make([]byte, limit)
+		out = out[:limit]
 		copy(out, raw[:limit])
 		stripped = false
 	}
 	return
-}
-
-func computeByteStats(input []byte) []int {
-	r := make([]int, 256)
-	for _, c := range input {
-		r[c] += 1
-	}
-	return r
 }
 
 func computeHasC1Bytes(byteStats []int) bool {
