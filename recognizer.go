@@ -16,7 +16,7 @@ type recognizerInput struct {
 
 const inputBufferSize = 8192
 
-var recognizerInputPool = sync.Pool{
+var recognizerInputsPool = sync.Pool{
 	New: func() interface{} {
 		return &recognizerInput{
 			input: make([]byte, 0, inputBufferSize),
@@ -34,7 +34,7 @@ func (r *recognizerInput) Reset() {
 }
 
 func newRecognizerInput(raw []byte, stripTag bool) *recognizerInput {
-	input := inputRecognizersPool.Get().(*recognizerInput)
+	input := recognizerInputsPool.Get().(*recognizerInput)
 	input.input, input.tagStripped = mayStripInput(input.input[:0], raw, stripTag)
 	for _, c := range input.input {
 		input.byteStats[c] += 1
