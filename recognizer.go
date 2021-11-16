@@ -78,7 +78,7 @@ func mayStripInput(input, raw []byte, stripTag bool) (out []byte, stripped bool)
 }
 
 func computeHasC1Bytes(input []byte) bool {
-	var byteStats [256]byte
+	var byteStats [256]int
 	for _, c := range input {
 		byteStats[c] += 1
 	}
